@@ -6,3 +6,4 @@ pip install pillow
 pip install tkinter
 pip install pynput
 pip install multiprocessing
+pip install screeninfo
