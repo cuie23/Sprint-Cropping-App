@@ -1,0 +1,4 @@
+.venv
+.env
+lettersTest.py
+__pycache__
