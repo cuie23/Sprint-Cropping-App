@@ -10,6 +10,7 @@ import tkinter as tk
 from tkinter import filedialog as fd
 from tkinter import *
 from pynput.mouse import Listener
+from screeninfo import get_monitors
 
 
 # Sets up letter dictionary
@@ -83,8 +84,9 @@ def getLetter(char):
     return output
 
 # Size Variables
-GUI_width = 1200
-GUI_height = 750    
+monitor = get_monitors()
+GUI_width = int(monitor[0].width*0.9)
+GUI_height = int(monitor[0].height*0.9)
 
 img_width = int((GUI_width*2)/5)
 img_height = int((GUI_width*2)/5)
@@ -408,7 +410,7 @@ def main():
         
 
     # File Selector
-    fileSelect = Button(window, text = "Select File", width = 14, height = 2, command = getFile, bg = 'yellow')
+    fileSelect = Button(window, text = "Select File", width = 20, height = 2, command = getFile, bg = 'yellow')
     fileSelect.place(x = int(5*GUI_width/8), y = int(GUI_height/22.5), anchor = 'n')
 
     # Write to image file
@@ -420,23 +422,23 @@ def main():
     resetButton.place(x = int(5*GUI_width/8), y = int(5*GUI_height/22.5), anchor = 'n')
 
     # Increment/Decrement Frame buttons
-    incrButton = Button(window, text = "Next Frame", width = 14, height = 2, command = incrFrame, bg = 'lime')
+    incrButton = Button(window, text = "Next Frame", width = 18, height = 2, command = incrFrame, bg = 'lime')
     incrButton.place(x = int(7*GUI_width/8), y = int(GUI_height/22.5), anchor = 'nw')
-    decrButton = Button(window, text = "Prev Frame", width = 14, height = 2, command = decrFrame, bg = 'orange')
+    decrButton = Button(window, text = "Prev Frame", width = 18, height = 2, command = decrFrame, bg = 'orange')
     decrButton.place(x = int(7*GUI_width/8), y = int(GUI_height/22.5), anchor = 'ne')
 
     # Multi-Increment/Decrement Frame buttons
-    incrButton1 = Button(window, text = "Forward 10 Frames", width = 14, height = 2, command = incrFrame10, bg = 'lime')
+    incrButton1 = Button(window, text = "Forward 10 Frames", width = 18, height = 2, command = incrFrame10, bg = 'lime')
     incrButton1.place(x = int(7*GUI_width/8), y = int(2.5*GUI_height/22.5), anchor = 'nw')
-    decrButton1 = Button(window, text = "Back 10 Frames", width = 14, height = 2, command = decrFrame10, bg = 'orange')
+    decrButton1 = Button(window, text = "Back 10 Frames", width = 18, height = 2, command = decrFrame10, bg = 'orange')
     decrButton1.place(x = int(7*GUI_width/8), y = int(2.5*GUI_height/22.5), anchor = 'ne')
 
     # Add phase to board
-    addButton = Button(window, text = "Add Frame to Board", width = 29, height = 2, command = pasteImage, bg = 'cyan')
+    addButton = Button(window, text = "Add Frame to Board", width = 35, height = 2, command = pasteImage, bg = 'cyan')
     addButton.place(x = int(7*GUI_width/8), y = int(4.5*GUI_height/22.5), anchor = 'n')
 
     # Delete image from board
-    delButton = Button(window, text = "Delete Frame from Board", width = 29, height = 2, command = removeImage, bg = 'cyan')
+    delButton = Button(window, text = "Delete Frame from Board", width = 35, height = 2, command = removeImage, bg = 'cyan')
     delButton.place(x = int(7*GUI_width/8), y = int(6*GUI_height/22.5), anchor = 'n')
 
     window.mainloop()
