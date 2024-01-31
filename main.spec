@@ -5,10 +5,10 @@ from ultralytics import YOLO
 ultra_files = collect_data_files('ultralytics')
 
 a = Analysis(
-    ['main.py'], # <- Please change this into your python code name.
+    ['main.py'], 
     pathex=[],
     binaries=[],
-    datas=ultra_files, # <- This is for enabling the referencing of all data files in the Ultralytics library.
+    datas=ultra_files, 
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
