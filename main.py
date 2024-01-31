@@ -68,7 +68,7 @@ def extrapolate_box_x1(frame0, frame1, currFrameNumber, x0, x1):
 # Gets a specific letter from the letters.jpg image, returns np image
 def getLetter(char):
 
-    if (char == ' '):
+    if (char == ' ' or (char not in letterCrops)):
         output = np.zeros((212, 145, 3))
         output[:, :, :] = 255
 
@@ -118,6 +118,7 @@ box_y1.set(-1)
 box_x2.set(-1)
 box_y2.set(-1)
 
+
 pixel = tk.PhotoImage(width=1, height=1)
 imgLabel_list = []
 img_list = []
@@ -125,7 +126,11 @@ img_list = []
 videoLength = -1
 
 phaseNameList = ['Toe off', 'Max Vert Pos', 'Strike', 'Touch down', 'Full support']
-
+pNameLabels = [Label(window, text = phaseNameList[0], font = ('TkDefaultFont', 15)), 
+               Label(window, text = phaseNameList[1], font = ('TkDefaultFont', 15)), 
+               Label(window, text = phaseNameList[2], font = ('TkDefaultFont', 15)), 
+               Label(window, text = phaseNameList[3], font = ('TkDefaultFont', 15)), 
+               Label(window, text = phaseNameList[4], font = ('TkDefaultFont', 15))]
 
 
 def main():
@@ -282,13 +287,66 @@ def main():
         for j in range(5):
             idx = i*5 + j
             xPos = int(GUI_width/10 + j*GUI_width/5)
-            yPos =  int(GUI_height*3/5 + i*GUI_height/4)
+            yPos =  int(GUI_height*3.1/5 + i*GUI_height/4)
             imgLabel_list[idx].place(x = xPos, y = yPos, anchor = CENTER)
+
+    text_entry_list = []
+    for i in range(5):
+        text_entry_list.append(tk.Entry(window))
+        text_entry_list[i].place(x = int(GUI_width/8 + i*GUI_width/5), y = int(GUI_height*3.25/7), anchor = 'e')
+
+
+    # updates name labels
+    def updateName0():
+        global phaseNameList
+        phaseNameList[0] = text_entry_list[0].get()
+        pNameLabels[0].config(text = phaseNameList[0])
+
+    def updateName1():
+        global phaseNameList
+        phaseNameList[1] = text_entry_list[1].get()
+        pNameLabels[1].config(text = phaseNameList[1])
+
+    def updateName2():
+        global phaseNameList
+        phaseNameList[2] = text_entry_list[2].get()
+        pNameLabels[2].config(text = phaseNameList[2])
+
+    def updateName3():
+        global phaseNameList
+        phaseNameList[3] = text_entry_list[3].get()
+        pNameLabels[3].config(text = phaseNameList[3])
+
+    def updateName4():
+        global phaseNameList
+        phaseNameList[4] = text_entry_list[4].get()
+        pNameLabels[4].config(text = phaseNameList[4])
+
+
+    # update name label buttons
+    update_button0 = Button(window, text = 'Update', width = 7, height = 1, bg='lime', command = updateName0)
+    update_button0.place(x = int(GUI_width/7.9 + 0*GUI_width/5), y = int(GUI_height*3.25/7), anchor = 'w')
+
+    update_button1 = Button(window, text = 'Update', width = 7, height = 1, bg='lime', command = updateName1)
+    update_button1.place(x = int(GUI_width/7.9 + 1*GUI_width/5), y = int(GUI_height*3.25/7), anchor = 'w')
+
+    update_button2 = Button(window, text = 'Update', width = 7, height = 1, bg='lime', command = updateName2)
+    update_button2.place(x = int(GUI_width/7.9 + 2*GUI_width/5), y = int(GUI_height*3.25/7), anchor = 'w')
+
+    update_button3 = Button(window, text = 'Update', width = 7, height = 1, bg='lime', command = updateName3)
+    update_button3.place(x = int(GUI_width/7.9 + 3*GUI_width/5), y = int(GUI_height*3.25/7), anchor = 'w')
+
+    update_button4 = Button(window, text = 'Update', width = 7, height = 1, bg='lime', command = updateName4)
+    update_button4.place(x = int(GUI_width/7.9 + 4*GUI_width/5), y = int(GUI_height*3.25/7), anchor = 'w')
+
 
     # Place phase name labels
     for i in range (5):
-        pNameLabel = Label(window, text = phaseNameList[i], font = ('TkDefaultFont', 15))
-        pNameLabel.place(x = int(GUI_width/10 + i*GUI_width/5), y = int(GUI_height*3/7), anchor = CENTER)
+        print(phaseNameList[i])
+        
+        #pNameLabels[i].text = phaseNameList[i]
+        pNameLabels[i].place(x = int(GUI_width/10 + i*GUI_width/5), y = int(GUI_height*3/7), anchor = CENTER)
+
         
 
 
