@@ -11,7 +11,7 @@ from tkinter import filedialog as fd
 from tkinter import *
 from pynput.mouse import Listener
 from screeninfo import get_monitors
-
+from sys import platform
 
 # Sets up letter dictionary
 letterCrops = {}
@@ -44,7 +44,7 @@ def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
 # Slightly expands the crop (since sometimes the detector box can cut off a toe)
 def GetBoundingBox(x1, y1, x2, y2, img_w, img_h):
     y_boundary = int(abs(y1-y2)*0.1)
-    x_boundary = int((abs(y1-y2)*GUI_width/1000 - abs(x1-x2))/2)
+    x_boundary = int((abs(y1-y2)*GUI_width/1500 - abs(x1-x2))/2)
 
     new_x1 = x1 - x_boundary
     new_y1 = y1 - y_boundary
@@ -85,8 +85,8 @@ def getLetter(char):
 
 # Size Variables
 monitor = get_monitors()
-GUI_width = int(monitor[0].width*0.9)
-GUI_height = int(monitor[0].height*0.9)
+GUI_width = int(monitor[0].width*0.8)
+GUI_height = int(monitor[0].height*0.85)
 
 img_width = int((GUI_width*2)/5)
 img_height = int((GUI_width*2)/5)
@@ -175,7 +175,7 @@ def main():
 
     # Putting the frame on screen
     videoFrame = Label(window, image = frame)
-    videoFrame.place(x = int(GUI_width/13.5), y = int(GUI_height/45), anchor = 'nw')
+    videoFrame.place(x = int(GUI_width/13.5), y = int(GUI_height/60), anchor = 'nw')
 
     # List of labels that will turn into images when the user decides to add them
     
@@ -228,12 +228,19 @@ def main():
         videoFrame.configure(image=img2)
         videoFrame.image = img2
 
-    # Prevent errors when cropping
-    def adjustXBounds(n):
-        return int(min(img_width, max(0, n)))
+    def incrFrame30():
+        if (frameNumber.get() < videoLength-31):
+            frameNumber.set(frameNumber.get()+30)
+            img2 = getImage(frameNumber.get())
+            videoFrame.configure(image=img2)
+            videoFrame.image = img2
 
-    def adjustYBounds(n):
-        return int(min(img_height, max(0, n)))
+    def decrFrame30():
+        if (frameNumber.get() >= 30):
+            frameNumber.set(frameNumber.get()-30)
+        img2 = getImage(frameNumber.get())
+        videoFrame.configure(image=img2)
+        videoFrame.image = img2
 
     # Crops image based on Pose Detection
     def cropImage():
@@ -341,9 +348,7 @@ def main():
 
 
     # Place phase name labels
-    for i in range (5):
-        print(phaseNameList[i])
-        
+    for i in range (5):        
         #pNameLabels[i].text = phaseNameList[i]
         pNameLabels[i].place(x = int(GUI_width/10 + i*GUI_width/5), y = int(GUI_height*3/7), anchor = CENTER)
 
@@ -440,6 +445,7 @@ def main():
 
 
     def writeToFile():
+        global platform
         width = int(GUI_width/5) 
         height = int(4.5*GUI_width/30)
         output = np.zeros((int(2.2*height), int(5*width), 4))
@@ -459,10 +465,12 @@ def main():
         output_with_label[:label.shape[0], :, :] = label[:,:,:]
         output_with_label[label.shape[0]:, :, :] = output[:,:,0:3]
 
+        print(platform == 'win32')
+        def_extension = ".*jpg" if (platform == 'darwin') else ".jpg"
 
         # Writing to a file
         converted_img = PIL.Image.fromarray(np.uint8(output_with_label[:,:,:])).convert('RGB')
-        file = fd.asksaveasfilename(defaultextension=".jpg")
+        file = fd.asksaveasfilename(defaultextension=def_extension)
         converted_img.save(file)    
         converted_img.close()
         
@@ -481,23 +489,29 @@ def main():
 
     # Increment/Decrement Frame buttons
     incrButton = Button(window, text = "Next Frame", width = 18, height = 2, command = incrFrame, bg = 'lime')
-    incrButton.place(x = int(7*GUI_width/8), y = int(GUI_height/22.5), anchor = 'nw')
+    incrButton.place(x = int(7*GUI_width/8), y = int(0.5*GUI_height/22.5), anchor = 'nw')
     decrButton = Button(window, text = "Prev Frame", width = 18, height = 2, command = decrFrame, bg = 'orange')
-    decrButton.place(x = int(7*GUI_width/8), y = int(GUI_height/22.5), anchor = 'ne')
+    decrButton.place(x = int(7*GUI_width/8), y = int(0.5*GUI_height/22.5), anchor = 'ne')
 
-    # Multi-Increment/Decrement Frame buttons
+    # 10-Increment/Decrement Frame buttons
     incrButton1 = Button(window, text = "Forward 10 Frames", width = 18, height = 2, command = incrFrame10, bg = 'lime')
-    incrButton1.place(x = int(7*GUI_width/8), y = int(2.5*GUI_height/22.5), anchor = 'nw')
+    incrButton1.place(x = int(7*GUI_width/8), y = int(2*GUI_height/22.5), anchor = 'nw')
     decrButton1 = Button(window, text = "Back 10 Frames", width = 18, height = 2, command = decrFrame10, bg = 'orange')
-    decrButton1.place(x = int(7*GUI_width/8), y = int(2.5*GUI_height/22.5), anchor = 'ne')
+    decrButton1.place(x = int(7*GUI_width/8), y = int(2*GUI_height/22.5), anchor = 'ne')
+
+    # 30-Increment/Decrement Frame buttons
+    incrButton1 = Button(window, text = "Forward 30 Frames", width = 18, height = 2, command = incrFrame30, bg = 'lime')
+    incrButton1.place(x = int(7*GUI_width/8), y = int(3.5*GUI_height/22.5), anchor = 'nw')
+    decrButton1 = Button(window, text = "Back 30 Frames", width = 18, height = 2, command = decrFrame30, bg = 'orange')
+    decrButton1.place(x = int(7*GUI_width/8), y = int(3.5*GUI_height/22.5), anchor = 'ne')
 
     # Add phase to board
     addButton = Button(window, text = "Add Frame to Board", width = 35, height = 2, command = pasteImage, bg = 'cyan')
-    addButton.place(x = int(7*GUI_width/8), y = int(4.5*GUI_height/22.5), anchor = 'n')
+    addButton.place(x = int(7*GUI_width/8), y = int(5*GUI_height/22.5), anchor = 'n')
 
     # Delete image from board
     delButton = Button(window, text = "Delete Frame from Board", width = 35, height = 2, command = removeImage, bg = 'cyan')
-    delButton.place(x = int(7*GUI_width/8), y = int(6*GUI_height/22.5), anchor = 'n')
+    delButton.place(x = int(7*GUI_width/8), y = int(6.5*GUI_height/22.5), anchor = 'n')
 
     window.mainloop()
 
