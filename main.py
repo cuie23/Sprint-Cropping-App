@@ -103,6 +103,10 @@ cropped_frameNumbers = []
 cropped_frameX = []
 cropNumber = IntVar()
 cropNumber.set(0)
+totalPeople = IntVar()
+totalPeople.set(0)
+personNumber = IntVar()
+personNumber.set(0)
 
 # File Variable
 currFile = StringVar()
@@ -159,11 +163,16 @@ def main():
                                     frameNumber.get(), cropped_frameX[-1], cropped_frameX[-2]))
         box_x2.set(box_x1.get() + box_w)
 
+
     # Sets box tensor based on detector
     if (len(results) > 0):
         boxes = results[0].boxes
+        #totalPeople.set(len(results))
         if(len(boxes) > 0):
-            box_tensor = boxes[0].xyxy
+            if (len(results)-1 < personNumber.get()):
+                box_tensor = boxes[personNumber.get()].xyxy
+            else: 
+                box_tensor = boxes[0].xyxy
             box_x1.set(int(box_tensor[0][0].item()))
             box_y1.set(int(box_tensor[0][1].item()))
             box_x2.set(int(box_tensor[0][2].item()))
@@ -228,16 +237,19 @@ def main():
         videoFrame.configure(image=img2)
         videoFrame.image = img2
 
-    def incrFrame30():
-        if (frameNumber.get() < videoLength-31):
-            frameNumber.set(frameNumber.get()+30)
+    def incrFramebig():
+        #print(videoLength)
+        if (frameNumber.get() < videoLength-61):
+            frameNumber.set(frameNumber.get()+60)
             img2 = getImage(frameNumber.get())
             videoFrame.configure(image=img2)
             videoFrame.image = img2
+        #print(videoLength)
+        #print(frameNumber.get())
 
-    def decrFrame30():
-        if (frameNumber.get() >= 30):
-            frameNumber.set(frameNumber.get()-30)
+    def decrFramebig():
+        if (frameNumber.get() >= 60):
+            frameNumber.set(frameNumber.get()-60)
         img2 = getImage(frameNumber.get())
         videoFrame.configure(image=img2)
         videoFrame.image = img2
@@ -261,8 +273,14 @@ def main():
         # Sets box tensor based on detector
         if (len(results) > 0):
             boxes = results[0].boxes
+            #totalPeople.set(len(results))
+            #print('person number: ' + str(personNumber.get()))
+            #print('total: ' + str(totalPeople.get()))
             if(len(boxes) > 0):
-                box_tensor = boxes[0].xyxy
+                if (personNumber.get() < totalPeople.get()):
+                    box_tensor = boxes[personNumber.get()].xyxy
+                else: 
+                    box_tensor = boxes[0].xyxy
                 box_x1.set(int(box_tensor[0][0].item()))
                 box_y1.set(int(box_tensor[0][1].item()))
                 box_x2.set(int(box_tensor[0][2].item()))
@@ -376,26 +394,28 @@ def main():
 
             
     def getFile():
+        global videoLength
         # Getting file
         file = fd.askopenfilename()
-        print('file selected: ' + file)
-        currFile.set(file)
-        frameNumber.set(0)
-        cropNumber.set(0)
-        
-        # Updating frame
-        img2 = getImage(frameNumber.get())
-        videoFrame.configure(image=img2)
-        videoFrame.image = img2
+        if file:
+            currFile.set(file)
+            frameNumber.set(0)
+            cropNumber.set(0)
+            
+            # Updating frame
+            img2 = getImage(frameNumber.get())
+            videoFrame.configure(image=img2)
+            videoFrame.image = img2
 
-        # Updating video frame count
-        cap = cv2.VideoCapture(file)
-        videoLength = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))    
+            # Updating video frame count
+            cap = cv2.VideoCapture(currFile.get())
+            videoLength = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            #print('init: ' + str(videoLength))
 
-        # Resetting board
-        for i in range(10):
-            imgLabel_list[i].configure(image = pixel)
-            imgLabel_list[i].image = pixel
+            # Resetting board
+            for i in range(10):
+                imgLabel_list[i].configure(image = pixel)
+                imgLabel_list[i].image = pixel
 
     def makeTextLabel():
         input = "   "
@@ -473,19 +493,43 @@ def main():
         file = fd.asksaveasfilename(defaultextension=def_extension)
         converted_img.save(file)    
         converted_img.close()
+
+    def nextPerson():
+        # running model
+        cap = cv2.VideoCapture(currFile.get())
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frameNumber.get())
+        success, img = cap.read()
+        img = ResizeWithAspectRatio(img, img_width, img_height)
+
+        model = YOLO('yolov8m-pose.pt')
+        results = []
+        results = model(img, conf = 0.3)
+        
+        # Sets box tensor based on detector
+        if (len(results) > 0):
+            totalPeople.set(len(results[0]))
+
+        #print('total: ' + str(totalPeople.get()))
+        #print('personNum: ' + str(personNumber.get()))
+        personNumber.set(personNumber.get()+1)
+        if (personNumber.get() >= totalPeople.get()):
+            #print('reset')
+            personNumber.set(0)
+        pasteImage()
+
         
 
     # File Selector
     fileSelect = Button(window, text = "Select File", width = 20, height = 2, command = getFile, bg = 'yellow')
-    fileSelect.place(x = int(5*GUI_width/8), y = int(GUI_height/22.5), anchor = 'n')
+    fileSelect.place(x = int(5*GUI_width/8), y = int(0.5*GUI_height/22.5), anchor = 'n')
 
     # Write to image file
     saveBoard = Button(window, text = "Save Board", width = 20, height = 2, command = writeToFile, bg = 'yellow')
-    saveBoard.place(x = int(5*GUI_width/8), y = int(3*GUI_height/22.5), anchor = 'n')
+    saveBoard.place(x = int(5*GUI_width/8), y = int(2*GUI_height/22.5), anchor = 'n')
 
     # Reset all images
     resetButton = Button(window, text = "Reset Board", width = 20, height = 2, command = resetBoard, bg = 'yellow')
-    resetButton.place(x = int(5*GUI_width/8), y = int(5*GUI_height/22.5), anchor = 'n')
+    resetButton.place(x = int(5*GUI_width/8), y = int(3.5*GUI_height/22.5), anchor = 'n')
 
     # Increment/Decrement Frame buttons
     incrButton = Button(window, text = "Next Frame", width = 18, height = 2, command = incrFrame, bg = 'lime')
@@ -500,10 +544,10 @@ def main():
     decrButton1.place(x = int(7*GUI_width/8), y = int(2*GUI_height/22.5), anchor = 'ne')
 
     # 30-Increment/Decrement Frame buttons
-    incrButton1 = Button(window, text = "Forward 30 Frames", width = 18, height = 2, command = incrFrame30, bg = 'lime')
-    incrButton1.place(x = int(7*GUI_width/8), y = int(3.5*GUI_height/22.5), anchor = 'nw')
-    decrButton1 = Button(window, text = "Back 30 Frames", width = 18, height = 2, command = decrFrame30, bg = 'orange')
-    decrButton1.place(x = int(7*GUI_width/8), y = int(3.5*GUI_height/22.5), anchor = 'ne')
+    incrButton2 = Button(window, text = "Forward 60 Frames", width = 18, height = 2, command = incrFramebig, bg = 'lime')
+    incrButton2.place(x = int(7*GUI_width/8), y = int(3.5*GUI_height/22.5), anchor = 'nw')
+    decrButton2 = Button(window, text = "Back 60 Frames", width = 18, height = 2, command = decrFramebig, bg = 'orange')
+    decrButton2.place(x = int(7*GUI_width/8), y = int(3.5*GUI_height/22.5), anchor = 'ne')
 
     # Add phase to board
     addButton = Button(window, text = "Add Frame to Board", width = 35, height = 2, command = pasteImage, bg = 'cyan')
@@ -512,6 +556,9 @@ def main():
     # Delete image from board
     delButton = Button(window, text = "Delete Frame from Board", width = 35, height = 2, command = removeImage, bg = 'cyan')
     delButton.place(x = int(7*GUI_width/8), y = int(6.5*GUI_height/22.5), anchor = 'n')
+
+    next_person = Button(window, text = 'Next Person', width = 20, height = 2, bg='yellow', command = nextPerson)
+    next_person.place(x = int(5*GUI_width/8), y = int(5*GUI_height/22.5), anchor = 'n')
 
     window.mainloop()
 
